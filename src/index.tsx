@@ -10,7 +10,7 @@ import {findInReactTree} from "enmity/utilities";
 import {getIDByName} from "enmity/api/assets";
 import {getByProps} from "enmity/modules";
 
-const Patcher = create('BetterStatusIndicator')
+const Patcher = create('PlatformIndicators')
 
 const PresenceStore = getByProps("setCurrentUserOnConnectionOpen")
 const ProfileBadges = getByName("ProfileBadges", {all: true, default: false})
@@ -70,7 +70,7 @@ function Statuses({statuses}) {
     </View>
 }
 
-const BetterStatusIndicator: Plugin = {
+const PlatformIndicators: Plugin = {
     ...manifest,
     onStart() {
         // フレンドリスト
@@ -137,4 +137,4 @@ const BetterStatusIndicator: Plugin = {
     }
 }
 
-registerPlugin(BetterStatusIndicator)
+registerPlugin(PlatformIndicators)
