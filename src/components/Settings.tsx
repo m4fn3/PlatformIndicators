@@ -1,5 +1,4 @@
 import {FormRow, FormSection, View, ScrollView, Image, Text} from 'enmity/components'
-import {SettingsStore} from 'enmity/api/settings'
 import {Constants, Navigation, React, StyleSheet} from 'enmity/metro/common'
 import {Linking} from "enmity/metro/common"
 // @ts-ignore
