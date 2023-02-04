@@ -1,0 +1,12 @@
+{
+   "name": "PlatformIndicators",
+   "version": "1.0.0",
+   "description": "Reveal statuses for every platform user is using",
+   "authors": [
+      {
+         "name": "mafu",
+         "id": "519760564755365888"
+      }
+   ],
+   "color": "#da70d6"
+}
