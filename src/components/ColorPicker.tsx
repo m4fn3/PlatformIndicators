@@ -1,12 +1,14 @@
-import {Constants, Navigation, React, StyleSheet} from "enmity/metro/common"
+import {Constants, React, StyleSheet} from "enmity/metro/common"
 import {FormRow, Text, View} from "enmity/components"
 import {getByName} from "enmity/metro"
 import {toHex} from "../utils/color"
 import {getIDByName} from "enmity/api/assets"
+import {getByProps} from "enmity/modules";
 
+const LazyActionSheet = getByProps("openLazy", "hideActionSheet")
 const CustomColorPickerActionSheet = getByName("CustomColorPickerActionSheet", {default: false}).default
 
-function ColorPicker({label, color, setColor, leading, onSelect=undefined}) {
+function ColorPicker({label, color, setColor, leading, onSelect = undefined}) {
     const styles = StyleSheet.createThemedStyleSheet({
         pickedColorText: {
             color: Constants.ThemeColorMap.TEXT_NORMAL,
@@ -40,13 +42,25 @@ function ColorPicker({label, color, setColor, leading, onSelect=undefined}) {
             }
             leading={<FormRow.Icon source={getIDByName(leading)}/>}
             onPress={() => {
-                Navigation.push(() => {
-                    return <CustomColorPickerActionSheet color={color} onSelect={(newColor) => {
-                        setColor(newColor)
-                        if (onSelect) onSelect(newColor)
-                        Navigation.pop()
-                    }}/>
-                })
+                // *** work on 162- ***
+                // Navigation.push(() => {
+                //     return (
+                //         <CustomColorPickerActionSheet color={color} onSelect={(newColor) => {
+                //             setColor(newColor)
+                //             if (onSelect) onSelect(newColor)
+                //             Navigation.pop()
+                //         }}/>
+                //     )
+                // })
+                setTimeout(() => {
+                    LazyActionSheet.openLazy(new Promise(resolve => resolve({default: CustomColorPickerActionSheet})), "CustomColorPickerActionSheet", {
+                        color: color, onSelect: (newColor) => {
+                            setColor(newColor)
+                            if (onSelect) onSelect(newColor)
+                            LazyActionSheet.hideActionSheet()
+                        }
+                    })
+                }, 300)
             }}
         />
     )

@@ -4,7 +4,7 @@ import {create} from 'enmity/patcher'
 // @ts-ignore
 import manifest, {name as plugin_name, name} from '../manifest.json'
 import Settings from "./components/Settings"
-import {getByName} from "enmity/metro"
+import {getByName, getModule} from "enmity/metro"
 import {View, Image, Pressable} from "enmity/components"
 import {findInReactTree} from "enmity/utilities"
 import {getIDByName} from "enmity/api/assets"
@@ -83,18 +83,19 @@ const BetterStatusIndicator: Plugin = {
 
         // フレンドリスト
         Patcher.after(Pressable.type, 'render', (self, args, res) => {
-            // const user = findInReactTree(res, r => r.props?.accessibilityActions[1].name === "call" && r.props?.accessibilityActions[2].name === "message")
-            const user = findInReactTree(res, r => r.props?.children[0][1].type.name == "FriendPresence")
-            if (user) {
-                let statuses = []
-                const userId = user.props.children[0][1].props.userId
-                const stat = PresenceStore.getState().clientStatuses[userId]
-                if (stat) {
-                    if (stat.desktop) statuses.unshift(<Indicator client="desktop" stat={stat.desktop}/>)
-                    if (stat.mobile) statuses.unshift(<Indicator client="mobile" stat={stat.mobile}/>)
-                    if (stat.web) statuses.unshift(<Indicator client="web" stat={stat.web}/>)
-                    if (statuses.length) {
-                        res.props.children[0].splice(-1, 0, <Statuses statuses={statuses}/>)
+            if (get(plugin_name, "friend", true)) {
+                const user = findInReactTree(res, r => r.props?.children[0][1].type.name == "FriendPresence")
+                if (user) {
+                    let statuses = []
+                    const userId = user.props.children[0][1].props.userId
+                    const stat = PresenceStore.getState().clientStatuses[userId]
+                    if (stat) {
+                        if (stat.desktop) statuses.unshift(<Indicator client="desktop" stat={stat.desktop}/>)
+                        if (stat.mobile) statuses.unshift(<Indicator client="mobile" stat={stat.mobile}/>)
+                        if (stat.web) statuses.unshift(<Indicator client="web" stat={stat.web}/>)
+                        if (statuses.length) {
+                            res.props.children[0].splice(-1, 0, <Statuses statuses={statuses}/>)
+                        }
                     }
                 }
             }
@@ -102,35 +103,39 @@ const BetterStatusIndicator: Plugin = {
 
         // メンバーリスト
         const viewPatch = Patcher.after(View, "render", (self, args, res) => {
-            const member = findInReactTree(res, r => r.props["type"] === "MEMBER")
-            if (member) {
-                Patcher.after(member.type, "type", (self, [props], res) => {
-                    const stat = PresenceStore.getState().clientStatuses[props.userId]
-                    if (stat) {
-                        if (stat.web) res.props.children.push(<Indicator client="web" stat={stat.web}/>)
-                        if (stat.mobile) res.props.children.push(<Indicator client="mobile" stat={stat.mobile}/>)
-                        if (stat.desktop) res.props.children.push(<Indicator client="desktop" stat={stat.desktop}/>)
-                    }
-                })
-                viewPatch()
+            if (get(plugin_name, "member", true)) {
+                const member = findInReactTree(res, r => r.props["type"] === "MEMBER")
+                if (member) {
+                    Patcher.after(member.type, "type", (self, [props], res) => {
+                        const stat = PresenceStore.getState().clientStatuses[props.userId]
+                        if (stat) {
+                            if (stat.web) res.props.children.push(<Indicator client="web" stat={stat.web}/>)
+                            if (stat.mobile) res.props.children.push(<Indicator client="mobile" stat={stat.mobile}/>)
+                            if (stat.desktop) res.props.children.push(<Indicator client="desktop" stat={stat.desktop}/>)
+                        }
+                    })
+                    viewPatch()
+                }
             }
         })
 
         // ユーザープロフィール
         ProfileBadges.forEach(profileBadge => {
             Patcher.after(profileBadge, "default", (self, [props], res) => {
-                let statuses = []
-                const stat = PresenceStore.getState().clientStatuses[props.user.id]
-                if (stat) {
-                    if (stat.desktop) statuses.unshift(<Indicator client="desktop" stat={stat.desktop}/>)
-                    if (stat.mobile) statuses.unshift(<Indicator client="mobile" stat={stat.mobile}/>)
-                    if (stat.web) statuses.unshift(<Indicator client="web" stat={stat.web}/>)
-                    if (statuses.length) {
-                        if (res) {
-                            let destination = res.props.badges ? res.props.badges : res.props.children
-                            destination.unshift(...statuses)
-                        } else {
-                            return <Statuses statuses={statuses}/>
+                if (get(plugin_name, "profile", true)) {
+                    let statuses = []
+                    const stat = PresenceStore.getState().clientStatuses[props.user.id]
+                    if (stat) {
+                        if (stat.desktop) statuses.unshift(<Indicator client="desktop" stat={stat.desktop}/>)
+                        if (stat.mobile) statuses.unshift(<Indicator client="mobile" stat={stat.mobile}/>)
+                        if (stat.web) statuses.unshift(<Indicator client="web" stat={stat.web}/>)
+                        if (statuses.length) {
+                            if (res) {
+                                let destination = res.props.badges ? res.props.badges : res.props.children
+                                destination.unshift(...statuses)
+                            } else {
+                                return <Statuses statuses={statuses}/>
+                            }
                         }
                     }
                 }

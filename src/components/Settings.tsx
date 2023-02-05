@@ -1,4 +1,4 @@
-import {FormRow, FormSection, View, ScrollView, Image, Text} from 'enmity/components'
+import {FormRow, FormSection, View, ScrollView, Image, Text, FormSwitch} from 'enmity/components'
 import {Constants, Navigation, React, StyleSheet} from 'enmity/metro/common'
 import {Linking} from "enmity/metro/common"
 // @ts-ignore
@@ -12,6 +12,9 @@ const GitHubIcon = getIDByName('img_account_sync_github_white')
 const DiscordIcon = getIDByName('Discord')
 const TwitterIcon = getIDByName('img_account_sync_twitter_white')
 const ReloadIcon = getIDByName('ic_message_retry')
+const MemberIcon = getIDByName('ic_members')
+const FriendIcon = getIDByName('ic_friend_wave_24px')
+const ProfileIcon = getIDByName('ic_profile_24px')
 
 const Invites = getByProps('acceptInviteAndTransitionToInviteChannel')
 
@@ -33,7 +36,7 @@ export default ({settings}) => {
             flexDirection: "column",
         },
         name: {
-            fontSize: 30,
+            fontSize: 25,
             paddingTop: 20,
             paddingLeft: 20,
             paddingRight: 30,
@@ -64,6 +67,7 @@ export default ({settings}) => {
     const [idleColor, setIdleColor] = React.useState(get(plugin_name, "idle", 16426522))
     const [dndColor, setDndColor] = React.useState(get(plugin_name, "dnd", 15548997))
     const [streamingColor, setStreamingColor] = React.useState(get(plugin_name, "streaming", 5846677))
+
     return (
         <ScrollView>
             <View style={styles.container}>
@@ -76,7 +80,7 @@ export default ({settings}) => {
                     <Text style={styles.author}>by mafu</Text>
                 </View>
             </View>
-            <FormSection title="SETTING">
+            <FormSection title="COLOR">
                 <ColorPicker label="Online" color={onlineColor} setColor={setOnlineColor} leading="StatusOnline" onSelect={(newColor) => {
                     set(plugin_name, "online", newColor)
                 }}/>
@@ -108,6 +112,44 @@ export default ({settings}) => {
                         set(plugin_name, "streaming", 5846677)
                         setStreamingColor(5846677)
                     }}
+                />
+            </FormSection>
+            <FormSection title="PLACE">
+                <FormRow
+                    label="Member List"
+                    leading={<FormRow.Icon source={MemberIcon}/>}
+                    trailing={
+                        <FormSwitch
+                            value={settings.getBoolean("member",true)}
+                            onValueChange={(value) => {
+                                settings.set("member", value)
+                            }}
+                        />
+                    }
+                />
+                <FormRow
+                    label="Friends Tab"
+                    leading={<FormRow.Icon source={FriendIcon}/>}
+                    trailing={
+                        <FormSwitch
+                            value={settings.getBoolean("friend",true)}
+                            onValueChange={(value) => {
+                                settings.set("friend", value)
+                            }}
+                        />
+                    }
+                />
+                <FormRow
+                    label="Profile"
+                    leading={<FormRow.Icon source={ProfileIcon}/>}
+                    trailing={
+                        <FormSwitch
+                            value={settings.getBoolean("profile",true)}
+                            onValueChange={(value) => {
+                                settings.set("profile", value)
+                            }}
+                        />
+                    }
                 />
             </FormSection>
             <FormSection title="INFORMATION">

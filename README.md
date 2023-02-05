@@ -1,8 +1,8 @@
-# PlatformIndicators
+# BetterStatusIndicator
 A plugin of Enmity (Custom Discord Client for iOS) to reveal statuses for every platform user is using.
 
 ## Install
-https://raw.githubusercontent.com/m4fn3/PlatformIndicators/master/dist/PlatformIndicators.js
+https://raw.githubusercontent.com/m4fn3/PlatformIndicators/master/dist/BetterStatusIndicator.js
 
 ## ScreenShot
 ![Images](https://user-images.githubusercontent.com/43488869/216783525-5bae3120-4dfe-4f81-9301-41a25e140694.png)
