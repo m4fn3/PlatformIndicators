@@ -14,7 +14,8 @@ function ColorPicker({label, color, setColor, leading, onSelect = undefined}) {
             color: Constants.ThemeColorMap.TEXT_NORMAL,
             marginLeft: 10,
             fontSize: 16,
-            width: 72
+            width: 72,
+            fontFamily: Constants.Fonts.PRIMARY_MEDIUM
         },
         pickerColorPreview: {
             width: 24,
@@ -40,7 +41,7 @@ function ColorPicker({label, color, setColor, leading, onSelect = undefined}) {
                     <FormRow.Arrow/>
                 </View>
             }
-            leading={<FormRow.Icon source={getIDByName(leading)}/>}
+            leading={<FormRow.Icon source={getIDByName(leading)} style={{tintColor: toHex(color)}}/>}
             onPress={() => {
                 // *** work on 162- ***
                 // Navigation.push(() => {
@@ -52,6 +53,7 @@ function ColorPicker({label, color, setColor, leading, onSelect = undefined}) {
                 //         }}/>
                 //     )
                 // })
+                // *** work on all versions (theoretically) ***
                 setTimeout(() => {
                     LazyActionSheet.openLazy(new Promise(resolve => resolve({default: CustomColorPickerActionSheet})), "CustomColorPickerActionSheet", {
                         color: color, onSelect: (newColor) => {

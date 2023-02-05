@@ -41,6 +41,7 @@ export default ({settings}) => {
             paddingLeft: 20,
             paddingRight: 30,
             color: Constants.ThemeColorMap.HEADER_PRIMARY,
+            fontFamily: Constants.Fonts.PRIMARY_MEDIUM
         },
         author: {
             fontSize: 15,

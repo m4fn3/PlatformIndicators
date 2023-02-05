@@ -1,10 +1,10 @@
 import {Plugin, registerPlugin} from 'enmity/managers/plugins'
-import {Navigation, React} from 'enmity/metro/common'
+import {React} from 'enmity/metro/common'
 import {create} from 'enmity/patcher'
 // @ts-ignore
 import manifest, {name as plugin_name, name} from '../manifest.json'
 import Settings from "./components/Settings"
-import {getByName, getModule} from "enmity/metro"
+import {getByName} from "enmity/metro"
 import {View, Image, Pressable} from "enmity/components"
 import {findInReactTree} from "enmity/utilities"
 import {getIDByName} from "enmity/api/assets"
