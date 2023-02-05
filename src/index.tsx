@@ -1,30 +1,33 @@
 import {Plugin, registerPlugin} from 'enmity/managers/plugins'
-import {React} from 'enmity/metro/common'
+import {Navigation, React} from 'enmity/metro/common'
 import {create} from 'enmity/patcher'
 // @ts-ignore
-import manifest, {name} from '../manifest.json'
+import manifest, {name as plugin_name, name} from '../manifest.json'
 import Settings from "./components/Settings"
 import {getByName} from "enmity/metro"
-import {View, Image, Pressable} from "enmity/components";
-import {findInReactTree} from "enmity/utilities";
-import {getIDByName} from "enmity/api/assets";
-import {getByProps} from "enmity/modules";
+import {View, Image, Pressable} from "enmity/components"
+import {findInReactTree} from "enmity/utilities"
+import {getIDByName} from "enmity/api/assets"
+import {getByProps} from "enmity/modules"
+import {toHex} from "./utils/color"
+import {get} from "enmity/api/settings"
 
-const Patcher = create('PlatformIndicators')
+const Patcher = create('BetterStatusIndicator')
 
 const PresenceStore = getByProps("setCurrentUserOnConnectionOpen")
 const ProfileBadges = getByName("ProfileBadges", {all: true, default: false})
+const Status = getByName("Status", {default: false})
 
 const mobileIcon = getIDByName("ic_mobile_status") // ic_mobile_device _status StatusMobileOnline
 const desktopIcon = getIDByName("ic_monitor_24px") // ic_monitor
 const webIcon = getIDByName("ic_public")
 
 function getStatusColor(stat) {
-    let color = "#747f8d" // offline
-    if (stat == "online") color = "#3ba55c"
-    else if (stat == "idle") color = "#faa61a"
-    else if (stat == "dnd") color = "#ed4245"
-    else if (stat == "streaming") color = "#593695"
+    let color = toHex(get(plugin_name, "offline", 7634829)) // #747f8d
+    if (stat == "online") color = toHex(get(plugin_name, "online", 3908956)) // #3ba55c
+    else if (stat == "idle") color = toHex(get(plugin_name, "idle", 16426522)) // #faa61a
+    else if (stat == "dnd") color = toHex(get(plugin_name, "dnd", 15548997)) // #ed4245
+    else if (stat == "streaming") color = toHex(get(plugin_name, "streaming", 5846677)) // #593695
     return color
 }
 
@@ -70,9 +73,14 @@ function Statuses({statuses}) {
     </View>
 }
 
-const PlatformIndicators: Plugin = {
+const BetterStatusIndicator: Plugin = {
     ...manifest,
     onStart() {
+        // ステータス
+        Patcher.after(Status, "default", (self, [props], res) => {
+            res.props.children.props.style.tintColor = getStatusColor(props.status)
+        })
+
         // フレンドリスト
         Patcher.after(Pressable.type, 'render', (self, args, res) => {
             // const user = findInReactTree(res, r => r.props?.accessibilityActions[1].name === "call" && r.props?.accessibilityActions[2].name === "message")
@@ -131,10 +139,11 @@ const PlatformIndicators: Plugin = {
     },
     onStop() {
         Patcher.unpatchAll()
-    },
+    }
+    ,
     getSettingsPanel({settings}) {
         return <Settings settings={settings}/>
     }
 }
 
-registerPlugin(PlatformIndicators)
+registerPlugin(BetterStatusIndicator)

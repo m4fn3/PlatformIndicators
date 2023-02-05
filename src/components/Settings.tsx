@@ -2,15 +2,19 @@ import {FormRow, FormSection, View, ScrollView, Image, Text} from 'enmity/compon
 import {Constants, Navigation, React, StyleSheet} from 'enmity/metro/common'
 import {Linking} from "enmity/metro/common"
 // @ts-ignore
-import {name, version} from '../../manifest.json'
+import {name as plugin_name, version} from '../../manifest.json'
 import {getIDByName} from "enmity/api/assets"
 import {getByProps} from "enmity/modules"
+import {ColorPicker} from "./ColorPicker"
+import {get, set} from "enmity/api/settings"
 
 const GitHubIcon = getIDByName('img_account_sync_github_white')
 const DiscordIcon = getIDByName('Discord')
 const TwitterIcon = getIDByName('img_account_sync_twitter_white')
+const ReloadIcon = getIDByName('ic_message_retry')
 
 const Invites = getByProps('acceptInviteAndTransitionToInviteChannel')
+
 
 export default ({settings}) => {
     const styles = StyleSheet.createThemedStyleSheet({
@@ -54,6 +58,12 @@ export default ({settings}) => {
             paddingBottom: 20
         }
     })
+
+    const [onlineColor, setOnlineColor] = React.useState(get(plugin_name, "online", 3908956))
+    const [offlineColor, setOfflineColor] = React.useState(get(plugin_name, "offline", 7634829))
+    const [idleColor, setIdleColor] = React.useState(get(plugin_name, "idle", 16426522))
+    const [dndColor, setDndColor] = React.useState(get(plugin_name, "dnd", 15548997))
+    const [streamingColor, setStreamingColor] = React.useState(get(plugin_name, "streaming", 5846677))
     return (
         <ScrollView>
             <View style={styles.container}>
@@ -62,10 +72,44 @@ export default ({settings}) => {
                     style={styles.image}
                 />
                 <View style={styles.title}>
-                    <Text style={styles.name}>PlatformIndicators</Text>
+                    <Text style={styles.name}>BetterStatusIndicator</Text>
                     <Text style={styles.author}>by mafu</Text>
                 </View>
             </View>
+            <FormSection title="SETTING">
+                <ColorPicker label="Online" color={onlineColor} setColor={setOnlineColor} leading="StatusOnline" onSelect={(newColor) => {
+                    set(plugin_name, "online", newColor)
+                }}/>
+                <ColorPicker label="Offline" color={offlineColor} setColor={setOfflineColor} leading="StatusOffline" onSelect={(newColor) => {
+                    set(plugin_name, "offline", newColor)
+                }}/>
+                <ColorPicker label="Idle" color={idleColor} setColor={setIdleColor} leading="StatusIdle" onSelect={(newColor) => {
+                    set(plugin_name, "idle", newColor)
+                }}/>
+                <ColorPicker label="DND" color={dndColor} setColor={setDndColor} leading="StatusDND" onSelect={(newColor) => {
+                    set(plugin_name, "dnd", newColor)
+                }}/>
+                <ColorPicker label="Streaming" color={streamingColor} setColor={setStreamingColor} leading="StatusStreaming" onSelect={(newColor) => {
+                    set(plugin_name, "streaming", newColor)
+                }}/>
+                <FormRow
+                    label="Reset to default"
+                    trailing={FormRow.Arrow}
+                    leading={<FormRow.Icon source={ReloadIcon}/>}
+                    onPress={() => {
+                        set(plugin_name, "offline", 7634829)
+                        setOfflineColor(7634829)
+                        set(plugin_name, "online", 3908956)
+                        setOnlineColor(3908956)
+                        set(plugin_name, "idle", 16426522)
+                        setIdleColor(16426522)
+                        set(plugin_name, "dnd", 15548997)
+                        setDndColor(15548997)
+                        set(plugin_name, "streaming", 5846677)
+                        setStreamingColor(5846677)
+                    }}
+                />
+            </FormSection>
             <FormSection title="INFORMATION">
                 <FormRow
                     label="Follow me on Twitter"
@@ -85,7 +129,9 @@ export default ({settings}) => {
                         Invites.acceptInviteAndTransitionToInviteChannel({
                             inviteKey: 'TrCqPTCrdq',
                             context: {location: 'Invite Button Embed'},
-                            callback: () => {Navigation.pop()}
+                            callback: () => {
+                                Navigation.pop()
+                            }
                         })
                     }}
                 />
@@ -95,7 +141,7 @@ export default ({settings}) => {
                     trailing={FormRow.Arrow}
                     leading={<FormRow.Icon source={GitHubIcon}/>}
                     onPress={() => {
-                        Linking.openURL("https://github.com/m4fn3/PlatformIndicators")
+                        Linking.openURL("https://github.com/m4fn3/BetterStatusIndicator")
                     }}
                 />
             </FormSection>

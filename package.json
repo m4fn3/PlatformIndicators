@@ -1,5 +1,5 @@
 {
-   "name": "platform-indicators",
+   "name": "bwtter-status-indicator",
    "description": "Reveal statuses for every platform user is using",
    "version": "1.0.0",
    "license": "GPL-3.0",
