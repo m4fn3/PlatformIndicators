@@ -21,6 +21,7 @@ const Status = getByName("Status", {default: false})
 const mobileIcon = getIDByName("ic_mobile_status") // ic_mobile_device _status StatusMobileOnline
 const desktopIcon = getIDByName("ic_monitor_24px") // ic_monitor
 const webIcon = getIDByName("ic_public")
+const botIcon = getIDByName("ic_robot_24px")
 
 function getStatusColor(stat) {
     let color = toHex(get(plugin_name, "offline", 7634829)) // #747f8d
@@ -59,6 +60,9 @@ function Indicator({client, stat}) {
             marginRight: 2,
             marginLeft: 2
         }
+    } else if (client == "bot") {
+        source = botIcon
+        styles = {}
     }
     return (
         <TouchableOpacity
@@ -125,9 +129,13 @@ const BetterStatusIndicator: Plugin = {
                     Patcher.after(member.type, "type", (self, [props], res) => {
                         const stat = PresenceStore.getState().clientStatuses[props.userId]
                         if (stat) {
-                            if (stat.web) res.props.children.push(<Indicator client="web" stat={stat.web}/>)
-                            if (stat.mobile) res.props.children.push(<Indicator client="mobile" stat={stat.mobile}/>)
-                            if (stat.desktop) res.props.children.push(<Indicator client="desktop" stat={stat.desktop}/>)
+                            if (!props.user.bot) {
+                                if (stat.web) res.props.children.push(<Indicator client="web" stat={stat.web}/>)
+                                if (stat.mobile) res.props.children.push(<Indicator client="mobile" stat={stat.mobile}/>)
+                                if (stat.desktop) res.props.children.push(<Indicator client="desktop" stat={stat.desktop}/>)
+                            } else if (stat.web) {
+                                res.props.children.push(<Indicator client="bot" stat={stat.web}/>)
+                            }
                         }
                     })
                     viewPatch()
@@ -142,9 +150,13 @@ const BetterStatusIndicator: Plugin = {
                     let statuses = []
                     const stat = PresenceStore.getState().clientStatuses[props.user.id]
                     if (stat) {
-                        if (stat.desktop) statuses.unshift(<Indicator client="desktop" stat={stat.desktop}/>)
-                        if (stat.mobile) statuses.unshift(<Indicator client="mobile" stat={stat.mobile}/>)
-                        if (stat.web) statuses.unshift(<Indicator client="web" stat={stat.web}/>)
+                        if (!props.user.bot) {
+                            if (stat.desktop) statuses.unshift(<Indicator client="desktop" stat={stat.desktop}/>)
+                            if (stat.mobile) statuses.unshift(<Indicator client="mobile" stat={stat.mobile}/>)
+                            if (stat.web) statuses.unshift(<Indicator client="web" stat={stat.web}/>)
+                        } else if (stat.web) {
+                            statuses.unshift(<Indicator client="bot" stat={stat.web}/>)
+                        }
                         if (statuses.length) {
                             if (res) {
                                 let destination = res.props.badges ? res.props.badges : res.props.children
