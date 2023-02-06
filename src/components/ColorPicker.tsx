@@ -43,7 +43,6 @@ function ColorPicker({label, color, setColor, leading, onSelect = undefined}) {
             }
             leading={<FormRow.Icon source={getIDByName(leading)} style={{tintColor: toHex(color)}}/>}
             onPress={() => {
-                // *** work on 162- ***
                 // Navigation.push(() => {
                 //     return (
                 //         <CustomColorPickerActionSheet color={color} onSelect={(newColor) => {
@@ -53,16 +52,13 @@ function ColorPicker({label, color, setColor, leading, onSelect = undefined}) {
                 //         }}/>
                 //     )
                 // })
-                // *** work on all versions (theoretically) ***
-                setTimeout(() => {
-                    LazyActionSheet.openLazy(new Promise(resolve => resolve({default: CustomColorPickerActionSheet})), "CustomColorPickerActionSheet", {
-                        color: color, onSelect: (newColor) => {
-                            setColor(newColor)
-                            if (onSelect) onSelect(newColor)
-                            LazyActionSheet.hideActionSheet()
-                        }
-                    })
-                }, 300)
+                LazyActionSheet.openLazy(new Promise(resolve => resolve({default: CustomColorPickerActionSheet})), "CustomColorPickerActionSheet", {
+                    color: color, onSelect: (newColor) => {
+                        setColor(newColor)
+                        if (onSelect) onSelect(newColor)
+                        LazyActionSheet.hideActionSheet()
+                    }
+                })
             }}
         />
     )

@@ -1,11 +1,11 @@
 import {Plugin, registerPlugin} from 'enmity/managers/plugins'
-import {React} from 'enmity/metro/common'
+import {React, Toasts} from 'enmity/metro/common'
 import {create} from 'enmity/patcher'
 // @ts-ignore
 import manifest, {name as plugin_name, name} from '../manifest.json'
 import Settings from "./components/Settings"
 import {getByName} from "enmity/metro"
-import {View, Image, Pressable} from "enmity/components"
+import {View, Image, Pressable, TouchableOpacity} from "enmity/components"
 import {findInReactTree} from "enmity/utilities"
 import {getIDByName} from "enmity/api/assets"
 import {getByProps} from "enmity/modules"
@@ -31,6 +31,15 @@ function getStatusColor(stat) {
     return color
 }
 
+function getStatusIcon(stat) {
+    let icon_name = "StatusOffline"
+    if (stat == "online") icon_name = "StatusOnline"
+    else if (stat == "idle") icon_name = "StatusIdle"
+    else if (stat == "dnd") icon_name = "StatusDND"
+    else if (stat == "streaming") icon_name = "StatusStreaming"
+    return getIDByName(icon_name)
+}
+
 function Indicator({client, stat}) {
     let source = webIcon
     let styles
@@ -52,14 +61,21 @@ function Indicator({client, stat}) {
         }
     }
     return (
-        <Image
-            source={source}
-            style={{
-                tintColor: getStatusColor(stat),
-                marginLeft: 5,
-                ...styles
-            }}
-        />
+        <TouchableOpacity
+            onPress={() => Toasts.open({
+                content: `${stat} (${client.charAt(0).toUpperCase()}${client.slice(1)})`,
+                source: getStatusIcon(stat)
+            })}
+        >
+            <Image
+                source={source}
+                style={{
+                    tintColor: getStatusColor(stat),
+                    marginLeft: 5,
+                    ...styles
+                }}
+            />
+        </TouchableOpacity>
     )
 }
 
