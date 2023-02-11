@@ -98,7 +98,7 @@ const BetterStatusIndicator: Plugin = {
     onStart() {
         // ステータス
         Patcher.after(Status, "default", (self, [props], res) => {
-            res.props.children.props.style.tintColor = getStatusColor(props.status)
+            res.props.children.props.style.tintColor = props.streaming ? getStatusColor("streaming") : getStatusColor(props.status)
         })
 
         // フレンドリスト
