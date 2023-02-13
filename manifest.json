@@ -1,7 +1,7 @@
 {
    "name": "BetterStatusIndicator",
    "version": "1.0.0",
-   "description": "Reveal statuses for every platform user is using and customize badge colors.",
+   "description": "Reveal statuses for every platform user is using with customizable color.",
    "authors": [
       {
          "name": "mafu",
