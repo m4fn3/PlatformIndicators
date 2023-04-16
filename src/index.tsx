@@ -11,11 +11,14 @@ import {getIDByName} from "enmity/api/assets"
 import {getByProps} from "enmity/modules"
 import {toHex} from "./utils/color"
 import {get} from "enmity/api/settings"
+import {build} from "enmity/api/native"
 
 const Patcher = create('BetterStatusIndicator')
 
 const PresenceStore = getByProps("setCurrentUserOnConnectionOpen")
-const ProfileBadges = getByName("ProfileBadges", {all: true, default: false})
+let ProfileBadges = getByName("ProfileBadges", {all: true, default: false})
+const NewProfileBadges = getByProps("ProfileBadgesOld")
+
 const Status = getByName("Status", {default: false})
 
 const mobileIcon = getIDByName("ic_mobile_status") // ic_mobile_device _status StatusMobileOnline
@@ -144,6 +147,9 @@ const BetterStatusIndicator: Plugin = {
         })
 
         // ユーザープロフィール
+        if (NewProfileBadges && build >= "42235") {
+            ProfileBadges = [NewProfileBadges]
+        }
         ProfileBadges.forEach(profileBadge => {
             Patcher.after(profileBadge, "default", (self, [props], res) => {
                 if (get(plugin_name, "profile", true)) {
@@ -160,7 +166,11 @@ const BetterStatusIndicator: Plugin = {
                         if (statuses.length) {
                             if (res) {
                                 let destination = res.props.badges ? res.props.badges : res.props.children
-                                destination.unshift(...statuses)
+                                if (destination) {
+                                    destination.unshift(...statuses)
+                                } else {
+                                    return <Statuses statuses={statuses}/>
+                                }
                             } else {
                                 return <Statuses statuses={statuses}/>
                             }
