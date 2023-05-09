@@ -86,12 +86,22 @@ function Indicator({client, stat}) {
     )
 }
 
-function Statuses({statuses}) {
-    return <View style={{
+function Statuses({userId, isBot = false, customStyle = {}}) {
+    const stat = PresenceStore.getState().clientStatuses[userId]
+    let statuses = []
+    if (stat) {
+        if (isBot) {
+            statuses.unshift(<Indicator client="bot" stat={stat.web}/>)
+        } else {
+            if (stat.desktop) statuses.unshift(<Indicator client="desktop" stat={stat.desktop}/>)
+            if (stat.mobile) statuses.unshift(<Indicator client="mobile" stat={stat.mobile}/>)
+            if (stat.web) statuses.unshift(<Indicator client="web" stat={stat.web}/>)
+        }
+    }
+    return <View style={[{
         flexDirection: "row", // 中身を横方向に並べる
-        marginRight: 10,
         alignItems: 'center' // 縦方向を揃える
-    }}>
+    }, customStyle]}>
         {...statuses}
     </View>
 }
@@ -99,7 +109,7 @@ function Statuses({statuses}) {
 const BetterStatusIndicator: Plugin = {
     ...manifest,
     onStart() {
-        // ステータス
+        // ステータス色
         Patcher.after(Status, "default", (self, [props], res) => {
             res.props.children.props.style.tintColor = props.streaming ? getStatusColor("streaming") : getStatusColor(props.status)
         })
@@ -109,37 +119,20 @@ const BetterStatusIndicator: Plugin = {
             if (get(plugin_name, "friend", true)) {
                 const user = findInReactTree(res, r => r.props?.children[0][1].type.name == "FriendPresence")
                 if (user) {
-                    let statuses = []
                     const userId = user.props.children[0][1].props.userId
-                    const stat = PresenceStore.getState().clientStatuses[userId]
-                    if (stat) {
-                        if (stat.desktop) statuses.unshift(<Indicator client="desktop" stat={stat.desktop}/>)
-                        if (stat.mobile) statuses.unshift(<Indicator client="mobile" stat={stat.mobile}/>)
-                        if (stat.web) statuses.unshift(<Indicator client="web" stat={stat.web}/>)
-                        if (statuses.length) {
-                            res.props.children[0].splice(-1, 0, <Statuses statuses={statuses}/>)
-                        }
-                    }
+                    res.props.children[0].splice(-1, 0, <Statuses userId={userId} customStyle={{marginRight: 5}}/>)
                 }
             }
         })
 
         // メンバーリスト
+        // ChatSidebarMembersGuildConnected > _FastListItemRenderer > V > C > A <- これ
         const viewPatch = Patcher.after(View, "render", (self, args, res) => {
             if (get(plugin_name, "member", true)) {
                 const member = findInReactTree(res, r => r.props["type"] === "MEMBER")
                 if (member) {
                     Patcher.after(member.type, "type", (self, [props], res) => {
-                        const stat = PresenceStore.getState().clientStatuses[props.userId]
-                        if (stat) {
-                            if (!props.user.bot) {
-                                if (stat.web) res.props.children.push(<Indicator client="web" stat={stat.web}/>)
-                                if (stat.mobile) res.props.children.push(<Indicator client="mobile" stat={stat.mobile}/>)
-                                if (stat.desktop) res.props.children.push(<Indicator client="desktop" stat={stat.desktop}/>)
-                            } else if (stat.web) {
-                                res.props.children.push(<Indicator client="bot" stat={stat.web}/>)
-                            }
-                        }
+                        res.props.children.push(<Statuses userId={props.userId} isBot={props.user.bot}/>)
                     })
                     viewPatch()
                 }
@@ -153,28 +146,16 @@ const BetterStatusIndicator: Plugin = {
         ProfileBadges.forEach(profileBadge => {
             Patcher.after(profileBadge, "default", (self, [props], res) => {
                 if (get(plugin_name, "profile", true)) {
-                    let statuses = []
-                    const stat = PresenceStore.getState().clientStatuses[props.user.id]
-                    if (stat) {
-                        if (!props.user.bot) {
-                            if (stat.desktop) statuses.unshift(<Indicator client="desktop" stat={stat.desktop}/>)
-                            if (stat.mobile) statuses.unshift(<Indicator client="mobile" stat={stat.mobile}/>)
-                            if (stat.web) statuses.unshift(<Indicator client="web" stat={stat.web}/>)
-                        } else if (stat.web) {
-                            statuses.unshift(<Indicator client="bot" stat={stat.web}/>)
+                    let badgeStatusStyle = {marginLeft: 3, marginRight: 3}
+                    if (res) {
+                        let destination = res.props.badges ? res.props.badges : res.props.children
+                        if (destination) {
+                            destination.unshift(<Statuses userId={props.user.id} isBot={props.user.bot} customStyle={badgeStatusStyle}/>)
+                        } else {
+                            return <Statuses userId={props.user.id} isBot={props.user.bot} customStyle={badgeStatusStyle}/>
                         }
-                        if (statuses.length) {
-                            if (res) {
-                                let destination = res.props.badges ? res.props.badges : res.props.children
-                                if (destination) {
-                                    destination.unshift(...statuses)
-                                } else {
-                                    return <Statuses statuses={statuses}/>
-                                }
-                            } else {
-                                return <Statuses statuses={statuses}/>
-                            }
-                        }
+                    } else {
+                        return <Statuses userId={props.user.id} isBot={props.user.bot} customStyle={badgeStatusStyle}/>
                     }
                 }
             })
