@@ -1,17 +1,18 @@
 import {Plugin, registerPlugin} from 'enmity/managers/plugins'
-import {React, Toasts} from 'enmity/metro/common'
+import {Locale, React, Toasts} from 'enmity/metro/common'
 import {create} from 'enmity/patcher'
 // @ts-ignore
 import manifest, {name as plugin_name, name} from '../manifest.json'
 import Settings from "./components/Settings"
-import {getByName} from "enmity/metro"
-import {View, Image, Pressable, TouchableOpacity} from "enmity/components"
+import {getByName, getModule} from "enmity/metro"
+import {View, Image, Pressable, TouchableOpacity, ScrollView} from "enmity/components"
 import {findInReactTree} from "enmity/utilities"
 import {getIDByName} from "enmity/api/assets"
 import {getByProps} from "enmity/modules"
 import {toHex} from "./utils/color"
 import {get} from "enmity/api/settings"
 import {build} from "enmity/api/native"
+import {ReactNative} from "../../AddonManager/src/utils/common";
 
 const Patcher = create('BetterStatusIndicator')
 
@@ -20,6 +21,7 @@ let ProfileBadges = getByName("ProfileBadges", {all: true, default: false})
 const NewProfileBadges = getByProps("ProfileBadgesOld")
 
 const Status = getByName("Status", {default: false})
+const ChatSidebarMembers = getByName("ChatSidebarMembers", {default: false})
 
 const mobileIcon = getIDByName("ic_mobile_status") // ic_mobile_device _status StatusMobileOnline
 const desktopIcon = getIDByName("ic_monitor_24px") // ic_monitor
@@ -114,7 +116,7 @@ const BetterStatusIndicator: Plugin = {
             res.props.children.props.style.tintColor = props.streaming ? getStatusColor("streaming") : getStatusColor(props.status)
         })
 
-        // フレンドリスト
+        // DMリスト/フレンドリスト
         Patcher.after(Pressable.type, 'render', (self, args, res) => {
             if (get(plugin_name, "friend", true)) {
                 const user = findInReactTree(res, r => r.props?.children[0][1].type.name == "FriendPresence")
@@ -123,19 +125,82 @@ const BetterStatusIndicator: Plugin = {
                     res.props.children[0].splice(-1, 0, <Statuses userId={userId} customStyle={{marginRight: 5}}/>)
                 }
             }
+            const dmLabelText = Locale.Messages.DIRECT_MESSAGE_A11Y_LABEL.message.split("(")[1].replace(")", "")
+            const dm = findInReactTree(res, r => r.props?.accessibilityLabel?.includes(dmLabelText))
+            if (dm) {
+                let user = dm.props?.children[0][0]?.props?.user
+                if (user) dm.props.children.push(<Statuses userId={user.id} isBot={user.bot}/>)
+            }
         })
 
-        // メンバーリスト
-        // ChatSidebarMembersGuildConnected > _FastListItemRenderer > V > C > A <- これ
+        // 没コード集
+        // 1. ConnectedPrivateChannels -> PrivateChannels -> この次renderXXXを全てフックしても出てこないため断念/PrivateChannel自体も取得できない
+        // 2. FastListのrenderから攻める -> PrivateChannelにいけたけどその先が無理
+        // const FastList = getByName("FastList", {default: false})
+        // Patcher.after(FastList, 'default', (self, args, res) => {
+        //     if (res.props.accessibilityLabel === "ダイレクトメッセージ") {
+        //         Patcher.after(res.props, 'renderItem', (self, args, res) => {
+        //             Patcher.after(res.type, 'type', (self, args, res) => {
+        //                 if (res.type.name === "PrivateChannel") { // たどり着いたけど...?
+        //                     Patcher.after(res, 'type', (self, args, res) => {
+        //                         console.log("----------")
+        //                         console.log(res)
+        //                     })
+        //                 }
+        //             })
+        //         })
+        //     }
+        // })
+
+
+        // サーバーのメンバーリスト // ChatSidebarMembersGuildConnected
         const viewPatch = Patcher.after(View, "render", (self, args, res) => {
             if (get(plugin_name, "member", true)) {
                 const member = findInReactTree(res, r => r.props["type"] === "MEMBER")
                 if (member) {
                     Patcher.after(member.type, "type", (self, [props], res) => {
-                        res.props.children.push(<Statuses userId={props.userId} isBot={props.user.bot}/>)
+                        if (res.props.children.length === 3) {
+                            res.props.children.push(<Statuses userId={props.userId} isBot={props.user.bot}/>)
+                        }
                     })
                     viewPatch()
                 }
+            }
+        })
+
+        // DMおよびグループDMのメンバーリスト
+        const unpatchChatSidebarMembers = Patcher.after(ChatSidebarMembers, 'default', (self, args, res) => { // ChatSidebarMembers
+            if (res.type.name === "ChatSidebarMembersPrivateChannel") {
+                const unpatchCSMPC = Patcher.after(res, 'type', (self, args, res) => { // ChatSidebarMembersPrivateChannel
+                    const unpatchFL = Patcher.after(res.props, 'renderItem', (self, args, res) => { // FastList
+                        // NOTE: activities等の属性でViewパッチをしてもでてこないためしゃーなし
+                        const unpatchM = Patcher.after(res.type, "type", (self, args, res) => { // Member
+                            Patcher.after(res.type, "type", (self, [props], res) => {
+                                if (res.props.children.length === 3) {
+                                    res.props.children.push(<Statuses userId={props.user.id} isBot={props.user.bot}/>)
+                                }
+                            })
+                        })
+                    })
+                })
+                // } else if (res.type.name === "ChatSidebarMembersThreadChannel") {
+                //     const unpatchCSMTC = Patcher.after(res, 'type', (self, args, res) => { // ChatSidebarMemberThreadChannel
+                //         const unpatchCSTM = Patcher.after(res, 'type', (self, args, res) => { // ChatSidebarThreadMembers
+                //             const unpatchCSTM2 = Patcher.after(res, 'type', (self, args, res) => { // ChatSidebarThreadMembers <- wtf
+                //                 const unpatchFL = Patcher.after(res.props, 'renderItem', (self, args, res) => { // FastList
+                //                     const unpatchTM = Patcher.after(res, "type", (self, args, res) => { // ThreadMember
+                //                         const unpatchM = Patcher.after(res.type, "type", (self, [props], res) => { // Member
+                //                             // NOTE: Discord doesn't fetch presences of Thread members so PresenceStore returns undefined (maybe)
+                //                             //       the same behavior is confirmed on Desktop (プロフィールを開けば表示される、手動で読み込めば使えるかも)
+                //                             if (res.props.children.length === 3) {
+                //                                 res.props.children.push(<Statuses userId={props.user.id} isBot={props.user.bot}/>)
+                //                             }
+                //                         })
+                //                     })
+                //                 })
+                //             })
+                //         })
+                //     })
             }
         })
 
