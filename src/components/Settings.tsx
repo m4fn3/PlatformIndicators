@@ -15,6 +15,7 @@ const ReloadIcon = getIDByName('ic_message_retry')
 const MemberIcon = getIDByName('ic_members')
 const FriendIcon = getIDByName('ic_friend_wave_24px')
 const ProfileIcon = getIDByName('ic_profile_24px')
+const DMIcon = getIDByName('ic_mail')
 
 const Invites = getByProps('acceptInviteAndTransitionToInviteChannel')
 
@@ -121,7 +122,7 @@ export default ({settings}) => {
                     leading={<FormRow.Icon source={MemberIcon}/>}
                     trailing={
                         <FormSwitch
-                            value={settings.getBoolean("member",true)}
+                            value={settings.getBoolean("member", true)}
                             onValueChange={(value) => {
                                 settings.set("member", value)
                             }}
@@ -133,7 +134,7 @@ export default ({settings}) => {
                     leading={<FormRow.Icon source={FriendIcon}/>}
                     trailing={
                         <FormSwitch
-                            value={settings.getBoolean("friend",true)}
+                            value={settings.getBoolean("friend", true)}
                             onValueChange={(value) => {
                                 settings.set("friend", value)
                             }}
@@ -145,9 +146,21 @@ export default ({settings}) => {
                     leading={<FormRow.Icon source={ProfileIcon}/>}
                     trailing={
                         <FormSwitch
-                            value={settings.getBoolean("profile",true)}
+                            value={settings.getBoolean("profile", true)}
                             onValueChange={(value) => {
                                 settings.set("profile", value)
+                            }}
+                        />
+                    }
+                />
+                <FormRow
+                    label="DM"
+                    leading={<FormRow.Icon source={DMIcon}/>}
+                    trailing={
+                        <FormSwitch
+                            value={settings.getBoolean("dm", true)}
+                            onValueChange={(value) => {
+                                settings.set("dm", value)
                             }}
                         />
                     }

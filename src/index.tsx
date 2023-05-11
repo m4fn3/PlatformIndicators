@@ -125,11 +125,13 @@ const BetterStatusIndicator: Plugin = {
                     res.props.children[0].splice(-1, 0, <Statuses userId={userId} customStyle={{marginRight: 5}}/>)
                 }
             }
-            const dmLabelText = Locale.Messages.DIRECT_MESSAGE_A11Y_LABEL.message.split("(")[1].replace(")", "")
-            const dm = findInReactTree(res, r => r.props?.accessibilityLabel?.includes(dmLabelText))
-            if (dm) {
-                let user = dm.props?.children[0][0]?.props?.user
-                if (user) dm.props.children.push(<Statuses userId={user.id} isBot={user.bot}/>)
+            if (get(plugin_name, "dm", true)) {
+                const dmLabelText = Locale.Messages.DIRECT_MESSAGE_A11Y_LABEL.message.split("(")[1].replace(")", "")
+                const dm = findInReactTree(res, r => r.props?.accessibilityLabel?.includes(dmLabelText))
+                if (dm) {
+                    let user = dm.props?.children[0][0]?.props?.user
+                    if (user) dm.props.children.push(<Statuses userId={user.id} isBot={user.bot}/>)
+                }
             }
         })
 
@@ -159,8 +161,10 @@ const BetterStatusIndicator: Plugin = {
                 const member = findInReactTree(res, r => r.props["type"] === "MEMBER")
                 if (member) {
                     Patcher.after(member.type, "type", (self, [props], res) => {
-                        if (res.props.children.length === 3) {
-                            res.props.children.push(<Statuses userId={props.userId} isBot={props.user.bot}/>)
+                        if (get(plugin_name, "member", true)) {
+                            if (res.props.children.length === 3) {
+                                res.props.children.push(<Statuses userId={props.userId} isBot={props.user.bot}/>)
+                            }
                         }
                     })
                     viewPatch()
