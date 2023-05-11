@@ -4,15 +4,14 @@ import {create} from 'enmity/patcher'
 // @ts-ignore
 import manifest, {name as plugin_name, name} from '../manifest.json'
 import Settings from "./components/Settings"
-import {getByName, getModule} from "enmity/metro"
-import {View, Image, Pressable, TouchableOpacity, ScrollView} from "enmity/components"
+import {getByName} from "enmity/metro"
+import {View, Image, Pressable, TouchableOpacity} from "enmity/components"
 import {findInReactTree} from "enmity/utilities"
 import {getIDByName} from "enmity/api/assets"
 import {getByProps} from "enmity/modules"
 import {toHex} from "./utils/color"
 import {get} from "enmity/api/settings"
 import {build} from "enmity/api/native"
-import {ReactNative} from "../../AddonManager/src/utils/common";
 
 const Patcher = create('BetterStatusIndicator')
 
