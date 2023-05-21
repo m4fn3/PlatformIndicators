@@ -171,7 +171,7 @@ const BetterStatusIndicator: Plugin = {
             }
         })
 
-        // DMおよびグループDMのメンバーリスト
+        // DMおよびグループDMのメンバーリスト // tested on 180.0(44225)
         const unpatchChatSidebarMembers = Patcher.after(ChatSidebarMembers, 'default', (self, args, res) => { // ChatSidebarMembers
             if (res.type.name === "ChatSidebarMembersPrivateChannel") {
                 const unpatchCSMPC = Patcher.after(res, 'type', (self, args, res) => { // ChatSidebarMembersPrivateChannel
