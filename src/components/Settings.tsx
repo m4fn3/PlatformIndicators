@@ -1,12 +1,12 @@
-import {FormRow, FormSection, View, ScrollView, Image, Text, FormSwitch} from 'enmity/components'
-import {Constants, Navigation, React, StyleSheet} from 'enmity/metro/common'
-import {Linking} from "enmity/metro/common"
+import { FormRow, FormSection, View, ScrollView, Image, Text, FormSwitch } from 'enmity/components'
+import { Constants, Navigation, React, StyleSheet } from 'enmity/metro/common'
+import { Linking } from "enmity/metro/common"
 // @ts-ignore
-import {name as plugin_name, version} from '../../manifest.json'
-import {getIDByName} from "enmity/api/assets"
-import {getByProps} from "enmity/modules"
-import {ColorPicker} from "./ColorPicker"
-import {get, set} from "enmity/api/settings"
+import { name as plugin_name, version } from '../../manifest.json'
+import { getIDByName } from "enmity/api/assets"
+import { getByProps } from "enmity/modules"
+import { ColorPicker } from "./ColorPicker"
+import { get, set } from "enmity/api/settings"
 
 const GitHubIcon = getIDByName('img_account_sync_github_white')
 const DiscordIcon = getIDByName('Discord')
@@ -16,11 +16,12 @@ const MemberIcon = getIDByName('ic_members')
 const FriendIcon = getIDByName('ic_friend_wave_24px')
 const ProfileIcon = getIDByName('ic_profile_24px')
 const DMIcon = getIDByName('ic_mail')
+const MobileIcon = getIDByName('mobile')
 
 const Invites = getByProps('acceptInviteAndTransitionToInviteChannel')
 
 
-export default ({settings}) => {
+export default ({ settings }) => {
     const styles = StyleSheet.createThemedStyleSheet({
         container: {
             flexDirection: "row",
@@ -74,7 +75,7 @@ export default ({settings}) => {
         <ScrollView>
             <View style={styles.container}>
                 <Image
-                    source={{uri: 'https://avatars.githubusercontent.com/u/43488869'}}
+                    source={{ uri: 'https://avatars.githubusercontent.com/u/43488869' }}
                     style={styles.image}
                 />
                 <View style={styles.title}>
@@ -85,23 +86,23 @@ export default ({settings}) => {
             <FormSection title="COLOR">
                 <ColorPicker label="Online" color={onlineColor} setColor={setOnlineColor} leading="StatusOnline" onSelect={(newColor) => {
                     set(plugin_name, "online", newColor)
-                }}/>
+                }} />
                 <ColorPicker label="Offline" color={offlineColor} setColor={setOfflineColor} leading="StatusOffline" onSelect={(newColor) => {
                     set(plugin_name, "offline", newColor)
-                }}/>
+                }} />
                 <ColorPicker label="Idle" color={idleColor} setColor={setIdleColor} leading="StatusIdle" onSelect={(newColor) => {
                     set(plugin_name, "idle", newColor)
-                }}/>
+                }} />
                 <ColorPicker label="DND" color={dndColor} setColor={setDndColor} leading="StatusDND" onSelect={(newColor) => {
                     set(plugin_name, "dnd", newColor)
-                }}/>
+                }} />
                 <ColorPicker label="Streaming" color={streamingColor} setColor={setStreamingColor} leading="StatusStreaming" onSelect={(newColor) => {
                     set(plugin_name, "streaming", newColor)
-                }}/>
+                }} />
                 <FormRow
                     label="Reset to default"
                     trailing={FormRow.Arrow}
-                    leading={<FormRow.Icon source={ReloadIcon}/>}
+                    leading={<FormRow.Icon source={ReloadIcon} />}
                     onPress={() => {
                         set(plugin_name, "offline", 7634829)
                         setOfflineColor(7634829)
@@ -115,11 +116,23 @@ export default ({settings}) => {
                         setStreamingColor(5846677)
                     }}
                 />
+                <FormRow
+                    label="Colorize Mobile Icons"
+                    leading={<FormRow.Icon source={MobileIcon} />}
+                    trailing={
+                        <FormSwitch
+                            value={settings.getBoolean("coloredMobile", true)}
+                            onValueChange={(value) => {
+                                settings.set("coloredMobile", value)
+                            }}
+                        />
+                    }
+                />
             </FormSection>
             <FormSection title="PLACE">
                 <FormRow
                     label="Member List"
-                    leading={<FormRow.Icon source={MemberIcon}/>}
+                    leading={<FormRow.Icon source={MemberIcon} />}
                     trailing={
                         <FormSwitch
                             value={settings.getBoolean("member", true)}
@@ -131,7 +144,7 @@ export default ({settings}) => {
                 />
                 <FormRow
                     label="Friends Tab"
-                    leading={<FormRow.Icon source={FriendIcon}/>}
+                    leading={<FormRow.Icon source={FriendIcon} />}
                     trailing={
                         <FormSwitch
                             value={settings.getBoolean("friend", true)}
@@ -143,7 +156,7 @@ export default ({settings}) => {
                 />
                 <FormRow
                     label="Profile"
-                    leading={<FormRow.Icon source={ProfileIcon}/>}
+                    leading={<FormRow.Icon source={ProfileIcon} />}
                     trailing={
                         <FormSwitch
                             value={settings.getBoolean("profile", true)}
@@ -155,7 +168,7 @@ export default ({settings}) => {
                 />
                 <FormRow
                     label="DM"
-                    leading={<FormRow.Icon source={DMIcon}/>}
+                    leading={<FormRow.Icon source={DMIcon} />}
                     trailing={
                         <FormSwitch
                             value={settings.getBoolean("dm", true)}
@@ -171,7 +184,7 @@ export default ({settings}) => {
                     label="Follow me on Twitter"
                     style={styles.info}
                     trailing={FormRow.Arrow}
-                    leading={<FormRow.Icon source={TwitterIcon}/>}
+                    leading={<FormRow.Icon source={TwitterIcon} />}
                     onPress={() => {
                         Linking.openURL("https://twitter.com/m4fn3")
                     }}
@@ -180,11 +193,11 @@ export default ({settings}) => {
                     label="Visit my server for help"
                     style={styles.info}
                     trailing={FormRow.Arrow}
-                    leading={<FormRow.Icon source={DiscordIcon}/>}
+                    leading={<FormRow.Icon source={DiscordIcon} />}
                     onPress={() => {
                         Invites.acceptInviteAndTransitionToInviteChannel({
                             inviteKey: 'TrCqPTCrdq',
-                            context: {location: 'Invite Button Embed'},
+                            context: { location: 'Invite Button Embed' },
                             callback: () => {
                                 Navigation.pop()
                             }
@@ -195,7 +208,7 @@ export default ({settings}) => {
                     label="Check Source on GitHub"
                     style={styles.info}
                     trailing={FormRow.Arrow}
-                    leading={<FormRow.Icon source={GitHubIcon}/>}
+                    leading={<FormRow.Icon source={GitHubIcon} />}
                     onPress={() => {
                         Linking.openURL("https://github.com/m4fn3/BetterStatusIndicator")
                     }}
