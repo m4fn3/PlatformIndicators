@@ -1,26 +1,26 @@
-import {Plugin, registerPlugin} from 'enmity/managers/plugins'
-import {Locale, React, Toasts} from 'enmity/metro/common'
-import {create} from 'enmity/patcher'
+import { Plugin, registerPlugin } from 'enmity/managers/plugins'
+import { Locale, React, Toasts } from 'enmity/metro/common'
+import { create } from 'enmity/patcher'
 // @ts-ignore
-import manifest, {name as plugin_name, name} from '../manifest.json'
+import manifest, { name as plugin_name, name } from '../manifest.json'
 import Settings from "./components/Settings"
-import {getByName} from "enmity/metro"
-import {View, Image, Pressable, TouchableOpacity} from "enmity/components"
-import {findInReactTree} from "enmity/utilities"
-import {getIDByName} from "enmity/api/assets"
-import {getByProps} from "enmity/modules"
-import {toHex} from "./utils/color"
-import {get} from "enmity/api/settings"
-import {build} from "enmity/api/native"
+import { getByName } from "enmity/metro"
+import { View, Image, Pressable, TouchableOpacity } from "enmity/components"
+import { findInReactTree } from "enmity/utilities"
+import { getIDByName } from "enmity/api/assets"
+import { getByProps } from "enmity/modules"
+import { toHex } from "./utils/color"
+import { get } from "enmity/api/settings"
+import { build } from "enmity/api/native"
 
 const Patcher = create('BetterStatusIndicator')
 
 const PresenceStore = getByProps("setCurrentUserOnConnectionOpen")
-let ProfileBadges = getByName("ProfileBadges", {all: true, default: false})
+let ProfileBadges = getByName("ProfileBadges", { all: true, default: false })
 const NewProfileBadges = getByProps("ProfileBadgesOld")
 
-const Status = getByName("Status", {default: false})
-const ChatSidebarMembers = getByName("ChatSidebarMembers", {default: false})
+const Status = getByName("Status", { default: false })
+const ChatSidebarMembers = getByName("ChatSidebarMembers", { default: false })
 
 const mobileIcon = getIDByName("ic_mobile_status") // ic_mobile_device _status StatusMobileOnline
 const desktopIcon = getIDByName("ic_monitor_24px") // ic_monitor
@@ -45,7 +45,7 @@ function getStatusIcon(stat) {
     return getIDByName(icon_name)
 }
 
-function Indicator({client, stat}) {
+function Indicator({ client, stat }) {
     let source = webIcon
     let styles
     if (client == "desktop") {
@@ -87,16 +87,16 @@ function Indicator({client, stat}) {
     )
 }
 
-function Statuses({userId, isBot = false, customStyle = {}}) {
+function Statuses({ userId, isBot = false, customStyle = {} }) {
     const stat = PresenceStore.getState().clientStatuses[userId]
     let statuses = []
     if (stat) {
         if (isBot) {
-            statuses.unshift(<Indicator client="bot" stat={stat.web}/>)
+            statuses.unshift(<Indicator client="bot" stat={stat.web} />)
         } else {
-            if (stat.desktop) statuses.unshift(<Indicator client="desktop" stat={stat.desktop}/>)
-            if (stat.mobile) statuses.unshift(<Indicator client="mobile" stat={stat.mobile}/>)
-            if (stat.web) statuses.unshift(<Indicator client="web" stat={stat.web}/>)
+            if (stat.desktop) statuses.unshift(<Indicator client="desktop" stat={stat.desktop} />)
+            if (stat.mobile) statuses.unshift(<Indicator client="mobile" stat={stat.mobile} />)
+            if (stat.web) statuses.unshift(<Indicator client="web" stat={stat.web} />)
         }
     }
     return <View style={[{
@@ -115,13 +115,19 @@ const BetterStatusIndicator: Plugin = {
             res.props.children.props.style.tintColor = props.streaming ? getStatusColor("streaming") : getStatusColor(props.status)
         })
 
+        Patcher.instead(PresenceStore, "isMobileOnline", (_self, args, _res) => {
+            if (get(plugin_name, "coloredMobile", true)) {
+                return PresenceStore.getState().clientStatuses[args[0]].mobile ?? false
+            }
+        })
+
         // DMリスト/フレンドリスト
         Patcher.after(Pressable.type, 'render', (self, args, res) => {
             if (get(plugin_name, "friend", true)) {
                 const user = findInReactTree(res, r => r.props?.children[0][1].type.name == "FriendPresence")
                 if (user) {
                     const userId = user.props.children[0][1].props.userId
-                    res.props.children[0].splice(-1, 0, <Statuses userId={userId} customStyle={{marginRight: 5}}/>)
+                    res.props.children[0].splice(-1, 0, <Statuses userId={userId} customStyle={{ marginRight: 5 }} />)
                 }
             }
             if (get(plugin_name, "dm", true)) {
@@ -129,7 +135,7 @@ const BetterStatusIndicator: Plugin = {
                 const dm = findInReactTree(res, r => r.props?.accessibilityLabel?.includes(dmLabelText))
                 if (dm) {
                     let user = dm.props?.children[0][0]?.props?.user
-                    if (user) dm.props.children.push(<Statuses userId={user.id} isBot={user.bot}/>)
+                    if (user) dm.props.children.push(<Statuses userId={user.id} isBot={user.bot} />)
                 }
             }
         })
@@ -162,7 +168,7 @@ const BetterStatusIndicator: Plugin = {
                     Patcher.after(member.type, "type", (self, [props], res) => {
                         if (get(plugin_name, "member", true)) {
                             if (res.props.children.length === 3) {
-                                res.props.children.push(<Statuses userId={props.userId} isBot={props.user.bot}/>)
+                                res.props.children.push(<Statuses userId={props.userId} isBot={props.user.bot} />)
                             }
                         }
                     })
@@ -173,19 +179,21 @@ const BetterStatusIndicator: Plugin = {
 
         // DMおよびグループDMのメンバーリスト // tested on 180.0(44225)
         const unpatchChatSidebarMembers = Patcher.after(ChatSidebarMembers, 'default', (self, args, res) => { // ChatSidebarMembers
-            if (res.type.name === "ChatSidebarMembersPrivateChannel") {
-                const unpatchCSMPC = Patcher.after(res, 'type', (self, args, res) => { // ChatSidebarMembersPrivateChannel
-                    const unpatchFL = Patcher.after(res.props, 'renderItem', (self, args, res) => { // FastList
-                        // NOTE: activities等の属性でViewパッチをしてもでてこないためしゃーなし
-                        const unpatchM = Patcher.after(res.type, "type", (self, args, res) => { // Member
-                            Patcher.after(res.type, "type", (self, [props], res) => {
-                                if (res.props.children.length === 3) {
-                                    res.props.children.push(<Statuses userId={props.user.id} isBot={props.user.bot}/>)
-                                }
+            if (get(plugin_name, "member", true)) {
+                if (res.type.name === "ChatSidebarMembersPrivateChannel") {
+                    const unpatchCSMPC = Patcher.after(res, 'type', (self, args, res) => { // ChatSidebarMembersPrivateChannel
+                        const unpatchFL = Patcher.after(res.props, 'renderItem', (self, args, res) => { // FastList
+                            // NOTE: activities等の属性でViewパッチをしてもでてこないためしゃーなし
+                            const unpatchM = Patcher.after(res.type, "type", (self, args, res) => { // Member
+                                Patcher.after(res.type, "type", (self, [props], res) => {
+                                    if (res.props.children.length === 3) {
+                                        res.props.children.push(<Statuses userId={props.user.id} isBot={props.user.bot} />)
+                                    }
+                                })
                             })
                         })
                     })
-                })
+                }
                 // } else if (res.type.name === "ChatSidebarMembersThreadChannel") {
                 //     const unpatchCSMTC = Patcher.after(res, 'type', (self, args, res) => { // ChatSidebarMemberThreadChannel
                 //         const unpatchCSTM = Patcher.after(res, 'type', (self, args, res) => { // ChatSidebarThreadMembers
@@ -214,16 +222,16 @@ const BetterStatusIndicator: Plugin = {
         ProfileBadges.forEach(profileBadge => {
             Patcher.after(profileBadge, "default", (self, [props], res) => {
                 if (get(plugin_name, "profile", true)) {
-                    let badgeStatusStyle = {marginLeft: 3, marginRight: 3}
+                    let badgeStatusStyle = { marginLeft: 3, marginRight: 3 }
                     if (res) {
                         let destination = res.props.badges ? res.props.badges : res.props.children
                         if (destination) {
-                            destination.unshift(<Statuses userId={props.user.id} isBot={props.user.bot} customStyle={badgeStatusStyle}/>)
+                            destination.unshift(<Statuses userId={props.user.id} isBot={props.user.bot} customStyle={badgeStatusStyle} />)
                         } else {
-                            return <Statuses userId={props.user.id} isBot={props.user.bot} customStyle={badgeStatusStyle}/>
+                            return <Statuses userId={props.user.id} isBot={props.user.bot} customStyle={badgeStatusStyle} />
                         }
                     } else {
-                        return <Statuses userId={props.user.id} isBot={props.user.bot} customStyle={badgeStatusStyle}/>
+                        return <Statuses userId={props.user.id} isBot={props.user.bot} customStyle={badgeStatusStyle} />
                     }
                 }
             })
@@ -233,8 +241,8 @@ const BetterStatusIndicator: Plugin = {
         Patcher.unpatchAll()
     }
     ,
-    getSettingsPanel({settings}) {
-        return <Settings settings={settings}/>
+    getSettingsPanel({ settings }) {
+        return <Settings settings={settings} />
     }
 }
 
